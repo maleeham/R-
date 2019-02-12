@@ -1,5 +1,5 @@
 # Multiple Regression
-## Last updated: September 18, 2018
+
 
 
 library(tidyverse)

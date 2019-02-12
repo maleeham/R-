@@ -1,5 +1,5 @@
 ## Dimension Reduction
-## Last updated: September 4, 2018
+
 
 library(tidyverse)
 library(reshape)

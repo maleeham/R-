@@ -1,0 +1,173 @@
+---
+title: "Probability Distributions"
+author: "Cuneyt Akcora"
+course: "UT Dallas: Statistical Mehtods for Data Science"
+output: html_document
+---
+ 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+library(ggplot2)
+```
+
+## Content
+1. [Uniform](#uniform)
+2. [Bernoulli](#bernoulli)
+3. [Binomial](#binomial)
+3. [Poisson](#poisson) 
+4. [Hypergeometric](#hypergeometric)
+
+## Uniform
+
+```{r}
+ 
+# simulate uniform random numbers
+data = runif(n=10000,min=0,max=10)
+ggplot()+
+  aes(x=data) +
+  geom_histogram(bins=100,fill="lightblue")
+```
+
+## Bernoulli 
+
+Bernoulli distribution is discrete probability distribution with just two possible outcomes, like head or tail, 0 or 1, and success or failure. 
+	
+```{r}
+data = as.numeric(rbinom(10000,1,0.3))
+ggplot()+
+  aes(x=data)+
+  geom_bar(fill="lightblue",width = 0.1)
+
+```
+
+## Binomial
+
+Let us compute the probability that when n is 10, X takes an odd value. A sequence that contains the even values in the Binomial sample space can be created with the expression
+c(1,3,5,7,9). 
+
+We can use the rbinom(n, size, prob) to draw from a binomial distribution.
+
+```{r}
+rbinom(20,5,0.5)
+rbinom(20,5,0.9)
+```
+
+
+If $X~is~ Binomial(n, p)$ then $P(X = x) = {n \choose x} p^x\cdot (1 - p)^{n-x}$, for $x = 0,1,\ldots,n$
+
+This sequence can serve as the input in the first argument of
+the function dbinom. The other arguments are trials=10 and p=0.5, respectively:
+
+```{r binomial}
+a<-dbinom(c(1,2,3,4,5,6,7,8,9,10),10,0.5)
+sum(a)# is not equal to 1. Why is this?
+sum(dbinom(c(1,3,5,7,9),10,0.5))#what will this sum be?
+sum(dbinom(c(1,2,3,4,5),10,0.9))
+sum(dbinom(c(1,2,3,4,5),10,0.1))
+data = rbinom(p=0.5,size=10,n=10000)
+ggplot()+
+  aes(x=data)+
+  geom_bar(fill="lightblue",width = 0.2)
+
+
+```
+
+We can skew the binomial distribution by varying the p value:
+
+```{r}
+data = rbinom(p=0.8,size=10,n=10000)
+ggplot()+
+  aes(x=data)+
+  geom_bar(fill="lightblue",width = 0.2)
+```
+
+## Poisson
+
+The Poisson distribution is used as an approximation of the total number of
+occurrences of rare events. Consider, for example, the Binomial setting that
+involves n trials with p as the probability of success of each trial. Then, if p
+is small but n is large then the number of successes X has, approximately, the
+Poisson distribution.
+
+$P(X = x) = \frac{e^{-\lambda}\lambda^x}{x!}$
+
+```{r poisson}
+data<- rpois(n=10000,lambda=3.2)
+data2<- rpois(n=10000,lambda=9.2)
+ggplot()+
+  aes(x=data)+
+  geom_bar(fill="lightblue",width=.2)
+ggplot()+
+  aes(x=data2)+
+  geom_bar(aes(x=data2),fill="green",width=.2)  
+```
+
+Let us compute the expectation of the Poisson distribution that we create with the command 
+data2<- rpois(n=10000,lambda=9.2)
+
+```{r}
+x <- 0:30
+p <- dpois(x,9.2)
+sum(x*p)
+```
+
+## Hypergeometric
+Changed from: https://www.r-bloggers.com/using-r-for-introductory-statistics-chapter-5-hypergeometric-distribution/
+
+Question 5.13 A sample of 100 people is drawn from a population of 600,000. If it is known that 40% of the population has a specific attribute, what is the probability that 35 or fewer in the sample have that attribute.
+
+I'm pretty sure that you're supposed to reason that 600,000 is sufficiently large that the draws from the population are close enough to independent. The answer is then computed like so:
+
+We sum the probabilities $P(X \geq 35)=P(X=0)+P(X=1)+\ldots+P(X=35)$
+
+```{r}
+a<-0
+for( i in 0:35){a<-a+dbinom(i,100,0.4)}
+a
+```
+
+R already has another function to compute this:
+
+```{r}
+pbinom(35,100,0.4)
+```
+
+
+Although this is close enough for practical purposes, the real way to answer this question is with the hypergeometric distribution.
+
+The hypergeometric distribution is a discrete probability distribution that describes the number of successes in a sequence of k draws from a finite population without replacement, just as the binomial distribution describes the number of successes for draws with replacement.
+
+The situation is usually described in terms of balls and urns. There are N balls in an urn, m white balls and n black balls. We draw k balls without replacement. X represents the number of white balls drawn.
+
+
+
+R gives us the function phyper(x, m, n, k, lower.tail = TRUE, log.p = FALSE), which does indeed show that our approximation was close enough.
+
+
+```{r}
+phyper(35,240000,360000, 100)
+```
+
+Where does hypergeometric diverge from binomial?
+
+```{r}
+#let's assume that the population is 850, and 50 has the attribute. 
+#This is the example we have in the slides
+pop<-850
+aprob<-50/850
+K= 50
+xval<-3
+res<-as.data.frame(matrix(0, ncol = 3, nrow = 0))
+colnames(res)<-c("n","hypergeometric","binomial")
+for(n in 5:300){
+  h<-dhyper(xval,K,pop, n)
+  b<-dbinom(xval,n,aprob)
+  res[nrow(res) + 1,]=c(n,h,b)
+}
+p<-ggplot(res)+geom_point(aes(x=n,y=hypergeometric,color="Hypergometric"))+geom_point(aes(x=n,y=binomial,color="Binomial"))+scale_y_continuous(name="probability")+ geom_vline(xintercept=50) 
+p
+```
+
+
+As we can see, once we take a sample size of $n \geq 5\%$ of the population in each trial, the binomial approximation tends to diverge from the true hypergeometric value.

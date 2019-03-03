@@ -1,0 +1,189 @@
+---
+title: "Point Estimation"
+author: "Cuneyt Akcora"
+output:
+  html_document: default
+  word_document: default
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+All functions are explained at the bottom. You can also run ?functionX to learn about the function.
+
+#Sampling, Estimators and Bias 
+
+Function to generate lognormal sample data points
+rlnorm(n, meanlog = 0, sdlog = 1): Give me n numbers from a lognormal distribution.
+However, there is an issue with how rlnorm works:
+
+from https://msalganik.wordpress.com/2017/01/21/making-sense-of-the-rlnorm-function-in-r/
+"The problem here is that, by definition, the logarithm of the log-normal distribution follows a normal distribution with the mean and standard deviation we just specified. Essentially, rlnorm(n = 1000000, meanlog = 7, sdlog = 75) and exp(rnorm(n = 1000000, mean = 7, sd = 75)) produce the same result.
+
+To get a sample of random data that follows a log-normal distribution and has arithmetic mean of 7 and a standard deviation of 75, you need to reparameterize things.  Roughly, you need to figure out what parameters should go into to the normal distribution such that when you exponentiate the draws, you end up with a mean of 7 and a standard deviation of 75.  Fortunately, that algebra has already been done and you can find the result on Wikipedia.  Here's how you do it:"
+
+```{r}
+set.seed(123)
+mean <- 9.79
+sdev <- 8.51
+location <- log(mean^2 / sqrt(sdev^2 + mean^2))
+shape <- sqrt(log(1 + (sdev^2 / mean^2)))
+message(paste("Lognormal location:", location))
+message(paste("Lonormal shape:", shape))
+sample1 <- rlnorm(n=50, location, shape)
+ms1<-mean(sample1)
+message("Mean of this sample is ", ms1, ". There were ",length(sample1)," data points in this sample.")
+```
+#Central Limit Theorem
+We will have many samples, and see how means of these samples are distributed.
+
+Let's see how log normal looks like.
+
+```{r}
+plot(density(rlnorm(n=5000, location, shape)))
+```
+
+We will see the central limit theorem in action by considering two scenarios: 
+First n=5, and we have small numbers of samples.
+
+
+```{r}
+set.seed(123)
+par(mfrow=c(2,2))#par combines multiple plots into one overall graph
+sampleSize=5  
+for(samplingRate in c(5,10,30,60)){
+  samplingDistVector<-c()
+  for(oneSample in c(1:samplingRate)){
+    sample <- rlnorm(n=sampleSize, location, shape)
+    samplingDistVector<-c(samplingDistVector,mean(sample))
+  }
+  m<- mean(samplingDistVector)
+  message(length(samplingDistVector)," samples taken. Mean is ", m)
+  plot(density(samplingDistVector))
+}
+
+```
+
+Second n=50, and high number of samples.
+```{r}
+set.seed(123)
+sampleSize<-5
+par(mfrow=c(2,2))#
+for(samplingRate in c(30,100,300,600)){
+  data<-c()
+   
+  for(j in c(1:samplingRate)){
+    sample <- rlnorm(n=sampleSize, location, shape)
+    data<-c(data,mean(sample))
+  }
+ m<- mean(data)
+  message(length(data)," samples taken. Mean is ", m)
+  plot(density(data))
+}
+```
+
+#Estimator bias
+Sample mean, median, trimmed mean are unbiased estimators of the population mean. Let's see this: 
+```{r}
+set.seed(123)
+par(mfrow=c(2,2))#  
+message("true population mean: ",mean)
+sampleSize=5 
+for(samplingRate in c(10,100,1000)){
+  dataVecMedian<-c()
+  dataVecMean<-c()
+   
+  for(j in c(1:samplingRate)){
+    sample <- rnorm(n=sampleSize, mean, sdev)#the underlying distribution is normal.
+    dataVecMedian<-c(dataVecMedian,median(sample))
+    dataVecMean<-c(dataVecMean,mean(sample))
+  }
+
+  m1<- median(dataVecMedian)
+  m2<- mean(dataVecMean)
+  message(length(dataVecMedian)," samples taken. Estimator is median. Population  mean is estimated as ", m1)
+  message(length(dataVecMean)," samples taken. Estimator is mean. Population mean is estimated as ", m2)
+} 
+```
+
+#Standard error
+
+Consider the samples taken by mean and median estimators. Standard error is given as $SE(\hat{\Theta})= \frac{s}{\sqrt{n}}$
+
+```{r}
+ 
+seMean<-sd(dataMean)/sqrt(length(dataMean))
+
+message("Standard error of mean estimator of population mean is ", seMean)
+ 
+message("mean value was ",mean(dataMean))
+message("standard error is ",100*seMean/mean(dataMean),"% of the mean.")
+
+```
+Since the standard error is 0.37% of the mean, the mean estimate is fairly precise.
+
+
+#Method of Moments Estimator
+
+The mean of an exponential function is $1/ \lambda$. if we have a sample 
+```{r}
+
+sampleExp<-c(11.96,  5.03,   67.40, 16.07,  31.50,  7.73,  11.10,  22.38)
+lambdaExponential<-1/mean(sampleExp)
+message("lambda is ", lambdaExponential)
+lambdaF <- function(x) lambdaExponential * (exp(-x * lambdaExponential))
+curve(lambdaF, from = 0, to = 200)
+
+#rate = 1/mean
+sExp1<-rexp(5,rate=0.5)
+sExp2<-rexp(500,rate=0.5)
+l1<-1/mean(sExp1)
+l2<-1/mean(sExp2)
+lambdaExponential=l1;
+curve(lambdaF, from = 0, to = 40)
+lambdaExponential=l2;
+curve(lambdaF, from = 0, to = 40)
+```
+
+#Method of moments
+
+Gamma distribution. 
+
+Suppose that $X_1,X_2,\ldots,X_N$ is a random sample from a gamma distribution with parameters r and $\lambda$. For the gamma distribution, $E(X) = r / \lambda$ and $E(X^2 ) = r (r +1) / \lambda^2$. The moment estimators are found by solving 
+    $$\bar{X} = \frac{r}{\lambda},\quad r(r+1)/\lambda^2 =\frac{1}{n}\sum_{i=1}^{n}{X_i^2}$$
+   Resulting estimators $$\hat{r}=\frac{\bar{X}^2}{(1/n)\sum_{i=1}^{n}{X_i^2-\bar{X}^2}}, \text{ and } \hat{\lambda}=\frac{\bar{X}}{(1/n)\sum_{i=1}^{n}{X_i^2-\bar{X}^2}}$$
+   
+   
+```{r}
+
+sampleGamma<-c(11.96,  5.03,   67.40, 16.07,  31.50,  7.73,  11.10,  22.38)
+m = mean(sampleGamma)
+m
+s<-sum(sampleGamma^2)
+rhat<-m^2/((1/length(sampleGamma)*s-m^2))
+message("r is ", rhat)
+lambdahat<-m/((1/length(sampleGamma)*s-m^2))
+message("lambda is ", lambdahat)
+```
+Let's generate data from the statistics we computed, and predict their statistics
+
+```{r echo =TRUE}
+message("the sample shape and scale parameters are ", rhat," and ",lambdahat)
+
+sampleGamma<-rgamma(50,shape=rhat,rate=lambdahat)
+m = mean(sampleGamma)
+s<-sum(sampleGamma^2)
+rhat2<-m^2/((1/length(sampleGamma)*s-m^2))
+message("The shape parameter r is estimated as ", rhat2)
+lambdahat2<-m/((1/length(sampleGamma)*s-m^2))
+message("The scale parameter lambda is estimated as ", lambdahat2)
+
+
+```
+   
+
+Functions
+
+- **rpois**: create data points with poisson parameters.
+
+- **set.seed(seed)**: Set the seed of R's random number generator, which is useful for creating simulations or random objects that can be reproduced.
+ 

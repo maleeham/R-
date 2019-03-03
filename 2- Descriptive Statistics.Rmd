@@ -1,0 +1,121 @@
+---
+title: "R Descriptive Statistics"
+author: "Cuneyt Akcora"
+date: "January 18, 2019"
+output: html_document
+---
+ 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+library(ggplot2)
+```
+
+# Contents
+1. [Mean and Variance](#mean-and-variance)
+2. [Probability Plot](#probability-plot)
+3. [Box Plot](#box-plot) 
+
+## Mean and Variance
+
+Caution: The built-in var() function of R uses n-1 in the variance denominatior
+
+```{r variance}
+# Let's create a population from a normal distribution. 
+set.seed(123)
+population<-rnorm(10000,mean=25,sd=3)
+sample<-sample(population, 10, replace = FALSE)
+sample
+mean(population)
+mean(sample)
+varPopulation= (sum((population-mean(population))^2))/length(population)
+varPopulation
+#Let's see how sample size changes the results
+for(sampleSize in c(10,20,30,90)){
+  sample<-sample(population, sampleSize, replace = FALSE)
+  varN= (sum((sample-mean(sample))^2))/(sampleSize-1)
+  message(sampleSize," data points sampled,  mean is ",mean(sample)," var is ",varN)
+}
+
+#Impact of n-1 on the variance estimate
+sampleSize=10
+#scenario 1: no correction
+variances1<-c()
+for(samplingRate in 1:1000) {
+  sample<-sample(population, sampleSize, replace = FALSE)
+  varN= (sum((sample-mean(sample))^2))/sampleSize
+  variances1<-cbind(variances1,varN)
+}
+#scenario 2: n-1 correction
+variances2<-c()
+for(samplingRate in 1:1000) {
+  sample<-sample(population, sampleSize, replace = FALSE)
+  varN= (sum((sample-mean(sample))^2))/(sampleSize-1)
+  variances2<-cbind(variances2,varN)
+}
+#scenario 3: n-2 correction
+variances3<-c()
+for(samplingRate in 1:1000) {
+  sample<-sample(population, sampleSize, replace = FALSE)
+  varN= (sum((sample-mean(sample))^2))/(sampleSize-2)
+  variances3<-cbind(variances3,varN)
+}
+message("Mean estimated variances are n:",mean(variances1), " n-1:", mean(variances2)," n-2:",mean(variances3))
+```
+
+Using n always underestimates, whereas n-2 overestimates. The closest estimation is from the n-1 approach (scenario 2).
+ 
+
+## Probability Plot
+
+In the almost perfect normally distributed sample, the QQ plot is a straight line.
+ 
+```{r probability}
+norm <- rnorm(100000)
+norm<-cbind.data.frame(norm,1:length(norm))
+colnames(norm)<-c("val","index")
+
+plot2<-ggplot(norm, aes(x=val)) +geom_histogram(bins=50,color="black", fill="lightblue")+
+      labs(x="Value", y = "Count")
+print(plot2)
+probPlot<-ggplot(norm, aes(sample=val))+stat_qq()
+print(probPlot)
+require(gridExtra)
+grid.arrange(probPlot, plot2+coord_flip(), ncol=2)
+```
+
+Adding a few too large data points
+
+```{r large}
+norm<-rbind(norm,c(5,length((norm))))
+norm<-rbind(norm,c(6,length((norm)))) 
+norm<-rbind(norm,c(7,length((norm))))
+probPlot<-ggplot(norm, aes(sample=val))+stat_qq()
+print(probPlot)
+```
+
+Adding a few too small data points.
+
+```{r small}
+norm<-rbind(norm,c(-5,length((norm))))
+norm<-rbind(norm,c(-6,length((norm)))) 
+norm<-rbind(norm,c(-7,length((norm))))
+probPlot<-ggplot(norm, aes(sample=val))+stat_qq()
+print(probPlot)
+```
+
+## Box Plot
+
+```{r box}
+norm <- rnorm(100000,mean=0,sd=1)
+norm<-cbind.data.frame(norm,1:length(norm))
+colnames(norm)<-c("norm1","index")
+norm2<-rnorm(nrow(norm),mean=0,sd=5)
+norm<-cbind(norm,norm2)
+plot3<-ggplot(norm,aes(y=norm1))+geom_boxplot(fill = "white", colour = "#3366FF")
+plot4<-ggplot(norm,aes(y=norm2))+geom_boxplot(fill = "white", colour = "#3366FF")
+grid.arrange(plot4, plot3, ncol=2)
+ 
+```
+
+ 

@@ -1,0 +1,473 @@
+---
+title: "R Introduction"
+author: "ANALYTICS VIDHYA CONTENT TEAM, Updated by Cuneyt Akcora"
+date: "January 11, 2019"
+output: html_document
+---
+Source of this R material: https://www.analyticsvidhya.com/blog/2016/02/complete-tutorial-learn-data-science-scratch/
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+```
+
+# Contents
+1. [RStudio basics](#rstudio-basics)
+2. [R Basics](#r-basics)
+3. [R Data Types](#r-data-types)
+4. [Control Structures in R](#control-structures-in-r)
+5. [Useful R Packages](#useful-r-packages)
+6. [Data manipulation](#data-manipulation)
+
+## RStudio basics
+
+![R Studio User Interface](rstudio.jpg?raw=true)
+
+Let's quickly understand the interface of R Studio:
+
+* R Console: This area shows the output of code you run. Also, you can directly write codes in console. Code entered directly in R console cannot be traced later. This is where R script comes to use.
+* R Script: As the name suggest, here you get space to write codes. To run those codes, simply select the line(s) of code and press Ctrl + Enter. Alternatively, you can click on little 'Run' button location at top right corner of R Script.
+* R environment: This space displays the set of external elements added. This includes data set, variables, vectors, functions etc. To check if data has been loaded properly in R, always look at this area.
+* Graphical Output: This space display the graphs created during exploratory data analysis. Not just graphs, you could select packages, seek help with embedded R's official documentation.
+ 
+
+## R Packages
+In R, software packages are developed by people and uploaded to a common repository, cran.org. The repository has many mirrors, you can manually choose which mirror to use.
+
+![Cran website](cran.png?raw=true)
+
+To install a package, simply type:
+
+install.packages("package name") 
+
+As a first time user, a pop might appear to select your CRAN mirror (country server), choose accordingly and press OK.
+
+Note: You can type this either in console directly and press 'Enter' or in R script and click 'Run'.
+
+Sometimes a package exists on the Github repo only. In  order to install Github only packages, you first need to install the devtools package. 
+
+
+
+```{r pressure, echo=FALSE}
+#install.packages("devtools") #installs the github installer package
+#remove.packages("devtools")# uninstalls the package, if needed
+
+library(devtools)#this runs the installed package
+install_github("twitter/AnomalyDetection")#install_github function is contained in the devtools package.
+#twitter is the username on GHithub, we are trying to install his AnomalyDetection package.
+```
+Sometimes a package exists on both Github and Cran. The Cran versions tend to be more stable. 
+
+##R Basics
+
+```{r}
+2 + 3
+
+6 / 3
+
+(3*8)/(2*3)
+
+log(12)
+
+sqrt (121)
+
+#saving the result in a a variable
+result<-3*5
+result=3*5
+
+```
+##R Data Types
+
+Everything you see or create in R is an object. A vector, matrix, data frame, even a variable is an object. R treats it that way. So, R has 5 basic classes of objects. This includes:
+
+* Character
+* Numeric (Real Numbers)
+* Integer (Whole Numbers)
+* Complex
+* Logical (True / False)
+
+These classes have attributes: a name or number which aptly identifies them. An object can have following attributes:
+
+* names, dimension names
+* dimensions
+* class
+* length
+Attributes of an object can be accessed using attributes() function. More on this coming in following section.
+
+ Let's create vectors of different classes. We can create vector using c() or concatenate command also.
+```{r}
+
+a <- c(1.8, 4.5)   #numeric
+b <- c(1 + 2i, 3 - 6i) #complex
+d <- c(23, 44)   #integer
+e <- vector("logical", length = 5)
+f<- c("what is the","type of these numbers: ",1,2)
+```
+
+
+A vector contains object of same class. But, you can mix objects of different classes too. When objects of different classes are mixed in a list, coercion occurs. This effect causes the objects of different types to 'convert' into one class. For example:
+
+```{r}
+qt <- c("Time", 24, "October", TRUE, 3.33)  #character
+ab <- c(TRUE, 24) #numeric
+cd <- c(2.5, "May") #character
+```
+
+
+To check the class of any object, use class("vector name") function.
+```{r}
+
+class(qt)
+```
+To convert the class of a vector, you can use as. command.
+
+```{r}
+bar <- 0:5
+class(bar)
+as.numeric(bar)
+class(bar)
+as.character(bar)
+class(bar)
+```
+
+List: A list is a special type of vector which contain elements of different data types. For example:
+
+```{r}
+my_list <- list(22, "ab", TRUE, 1 + 2i)
+my_list
+```
+As you can see, the output of a list is different from a vector. This is because, all the objects are of different types. The double bracket [[1]] shows the index of first element and so on. Hence, you can easily extract the element of lists depending on their index. Like this:
+
+```{r}
+my_list[[3]]
+
+```
+You can use [] single bracket too. But, that would return the list element with its index number, instead of the result above. Like this:
+
+```{r}
+my_list[3]
+```
+
+Matrices: When a vector is introduced with row and column i.e. a dimension attribute, it becomes a matrix. A matrix is represented by set of rows and columns. It is a 2 dimensional data structure. It consist of elements of same class. Let's create a matrix of 3 rows and 2 columns:
+
+```{r}
+my_matrix <- matrix(1:6, ncol=2, nrow=3)
+my_matrix
+dim(my_matrix)
+ 
+```
+```{r}
+my_matrix[,2]   #extracts second column
+my_matrix[,1]   #extracts first column
+my_matrix[2,]   #extracts second row
+my_matrix[1,]   #extracts first row
+
+my_matrix <- matrix(1:36, ncol=4, nrow=9)
+my_matrix
+my_matrix[1:5,]#gives the rows 1 to 5 with all columns
+my_matrix[,1:2]#gives the columns 1 to 2 with all rows
+my_matrix[1:5,1:2]#gives the rows 1 to 5 with 1st and 2nd columns
+
+my_matrix[c(1,3),c(2,4)]
+```
+
+As an interesting fact, you can also create a matrix from a vector. All you need to do is, assign dimension dim() later. Like this:
+
+```{r}
+age <- c(23, 44, 15, 12, 31, 16)
+age
+
+dim(age) <- c(2,3)
+age
+
+class(age)
+```
+
+
+You can also join two vectors using cbind() and rbind() functions. 
+
+cbind= column bind, bind multiple columns together.  
+rbind= row bind, bind multiple rows together.  
+
+But, make sure that both vectors have same number of elements. If not, it will return NA values.
+
+```{r}
+data1 <- c(2, 3, 4, 5, 6)
+data2 <- c(20, 30, 40, 50, 60)
+data3<-cbind(data1, data2)#creates two columns
+data3
+
+data4<-rbind(data1, data2)#creates two rows
+data4
+
+data5<-rbind(data4,dataAdd=data1+data2)
+data5
+data5<-rbind(data5,dataMult=data1*data2)
+data5
+```
+
+
+**Data Frame**: This is the most commonly used member of data types family. It is used to store tabular data. It is different from matrix. In a matrix, every element must have same class. But, in a data frame, you can put list of vectors containing different classes. This means, every column of a data frame acts like a list. Every time you will read data in R, it will be stored in the form of a data frame. Hence, it is important to understand the majorly used commands on data frame:
+
+```{r}
+df <- data.frame(name = c("ash","jane","paul","mark"), score = c(67,56,87,91))
+df
+ 
+
+dim(df)
+
+str(df)
+
+nrow(df)
+
+ncol(df)
+```
+
+
+Let's understand the code above. df is the name of data frame. dim() returns the dimension of data frame as 4 rows and 2 columns. str() returns the structure of a data frame i.e. the list of variables stored in the data frame. nrow() and ncol() return the number of rows and number of columns in a data set respectively.
+
+```{r}
+colnames(df)<-c("Student name"," Student score")
+rownames(df)<-c("CS1","CS2","CS3","Stats1")#row names are not very intuitive
+df
+```
+
+
+Here you see "name" is a factor variable and "score" is numeric. In data science, a variable can be categorized into two types: Continuous and Categorical.
+Continuous variables are those which can take any form such as 1, 2, 3.5, 4.66 etc. 
+Categorical variables are those which takes only discrete values such as 2, 5, 11, 15 etc. 
+
+In R, categorical values are represented by factors. In df, name is a factor variable having 4 unique levels. Factor or categorical variable are specially treated in a data set. 
+
+Let's now understand the concept of missing values in R. This is one of the most painful yet crucial part of predictive modeling. You must be aware of all techniques to deal with them. The complete explanation on such techniques is provided here.
+
+Missing values in R are represented by NA and NaN. Now we'll check if a data set has missing values (using the same data frame df).
+
+```{r}
+df[1:2,2] <- NA #injecting NA at 1st, 2nd row and 2nd column of df 
+df
+is.na(df) #checks the entire data set for NAs and return logical output name score
+
+table(is.na(df))
+table(df)#the table function can be used to compute frequencies
+df<-rbind(df,c("paul",98))
+table(df)
+```
+```{r}
+df[!complete.cases(df),] #returns the list of rows having missing values
+```
+
+
+Missing values hinder normal calculations in a data set. For example, let's say, we want to compute the mean of score. Since there are two missing values, it can't be done directly. Let's see:
+
+```{r}
+mean(df$score)
+mean(df$score, na.rm = TRUE)
+
+```
+
+The use of na.rm = TRUE parameter tells R to ignore the NAs and compute the mean of remaining values in the selected column (score). To remove rows with NA values in a data frame, you can use na.omit:
+```{r}
+
+new_df <- na.omit(df)
+new_df
+
+
+```
+
+##Control Structures in R 
+
+
+A control structure 'controls' the flow of code / commands written inside a function. A function is a set of multiple commands written to automate a repetitive coding task.
+
+For example: You have 10 data sets. You want to find the mean of 'Age' column present in every data set. This can be done in 2 ways: either you write the code to compute mean 10 times or you simply create a function and pass the data set to it.
+
+Let's understand the control structures in R with simple examples:
+
+if, else - This structure is used to test a condition. Below is the syntax:
+
+if (<condition>){
+         ##do something
+} else {
+         ##do something
+}
+
+**Example**
+
+```{r}
+#initialize a variable
+N <- 10
+
+#check if this variable * 5 is > 40
+if (N * 5 > 40){
+       print("This is easy!")
+} else {
+       print ("It's not easy!")
+}
+
+```
+
+ 
+
+**for** - This structure is used when a loop is to be executed fixed number of times. It is commonly used for iterating over the elements of an object (list, vector). Below is the syntax:
+
+for (<search condition>){
+          #do something
+}
+
+Example
+
+```{r}
+#initialize a vector
+y <- c(99,45,34,65,76,23)
+
+#print the first 4 numbers of this vector
+for(i in 1:4){
+     print(y[i])
+}
+
+for(i in 1:length(y)){
+  print(y[i])
+}
+```
+
+
+ 
+
+**while** - It begins by testing a condition, and executes only if the condition is found to be true. Once the loop is executed, the condition is tested again. Hence, it's necessary to alter the condition such that the loop doesn't go infinity. Below is the syntax:
+
+```{r}
+#initialize a condition
+Age <- 12
+
+#check if age is less than 17
+while(Age < 17){
+         print(Age)
+         Age <- Age + 1 #Once the loop is executed, this code breaks the loop
+}
+```
+
+
+There are other control structures as well but are less frequently used than explained above. Those structures are:
+
+repeat - It executes an infinite loop
+break - It breaks the execution of a loop
+next - It allows to skip an iteration in a loop
+return - It help to exit a function
+
+**User defined functions**
+```{r}
+myFunction<-function(e){
+  return(e*e)
+  }
+print(myFunction(17))
+
+```
+ 
+ 
+
+## Useful R Packages
+Out of ~7800 packages listed on CRAN, I've listed some of the most powerful and commonly used packages in predictive modeling in this article. Since, I've already explained the method of installing packages, you can go ahead and install them now. Sooner or later you'll need them.
+
+Importing Data: R offers wide range of packages for importing data available in any format such as .txt, .csv, .json, .sql etc. To import large files of data quickly, it is advisable to install and use data.table, readr, RMySQL, sqldf, jsonlite.
+
+Data Visualization: R has in built plotting commands as well. They are good to create simple graphs. But, becomes complex when it comes to creating advanced graphics. Hence, you should install **ggplot2**.
+
+Data Manipulation: R has a fantastic collection of packages for data manipulation. These packages allows you to do basic & advanced computations quickly. These packages are dplyr, plyr, tidyr, lubridate, stringr.  
+
+Modeling / Machine Learning: For modeling, caret package in R is powerful enough to cater to every need for creating machine learning model. However, you can install packages algorithms wise such as randomForest, rpart, gbm etc
+ 
+ 
+##Data Manipulation
+
+ 
+Let's now begin with importing and exploring data.
+
+```{r}
+#working directory
+path <- "C:/Users/cxa123230/Desktop/MyCode"
+
+#set working directory
+setwd(path)
+```
+
+
+```{r}
+#Load Dataset
+#data <- read.csv("degreeFile.csv") extension is important
+data <- read.csv("degreeFile.txt",header=FALSE,sep=",")
+colnames(data)
+#default colnames are maningless
+#let's truncate this data for this demonstration
+data<-data[,1:5]#take the first column of all rows
+colnames(data)
+colnames(data)<-c("PTM","Degree1","Degree2","Degree3","Degree4")
+str(data)
+summary(data)
+#we can apply many built-in functions on data
+cor(data$Degree1,data$Degree2)
+cor(data$Degree1,data$Degree4)
+```
+ 
+check dimesions (number of row & columns) in data set
+
+
+```{r}
+dim(data)#number of rows = 16224, columns = 5
+#we will create a new column from PTM names, let's take the first 3 chars and create the name column from them
+data$name<-substr(data$PTM, 1, 3)
+```
+```{r}
+#install.packages("plyr")
+library(plyr)
+
+#the plyr packages provides many useful functions for data summaries
+#one of these functions is ddply
+#ddply: Split data frame, apply function, and return results in a data frame.
+nameData<-ddply(data,.(name),summarize,m1 = mean(Degree1),m2=mean(Degree2),m3=mean(Degree3),count=length(Degree1),v1=var(Degree1-Degree3))
+#if you want to summarize based on two variables, use ddply(data,.(var1,var2),summarize...
+plot(nameData$m1,nameData$m2)
+ 
+
+#ggplot creates better pictures
+library(ggplot2)
+plot1<-ggplot(data=nameData,aes(x=m1,y=m2))+geom_point()+xlab("Degree 1")+ylab("Degree 2")
+print(plot1)
+
+#histogram of degrees
+plot2<-ggplot(data[data$Degree1>0,], aes(x=Degree1)) +geom_histogram(bins=50,color="black", fill="lightblue")+
+      labs(title="PTM Degree in the Omics Network",x="Degree", y = "Number of PTMs")
+
+print(plot2)
+#You can also save the plot as a figure.
+#ggsave(plot=plot2,filename="hist1.png",path=getwd(),width=9,height=6, units="cm")
+```
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

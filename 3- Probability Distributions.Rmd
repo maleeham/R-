@@ -1,10 +1,4 @@
----
-title: "Probability Distributions"
-author: "Cuneyt Akcora"
-course: "UT Dallas: Statistical Mehtods for Data Science"
-output: html_document
----
- 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())

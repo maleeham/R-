@@ -1,9 +1,4 @@
----
-title: "R Introduction"
-author: "ANALYTICS VIDHYA CONTENT TEAM, Updated by Cuneyt Akcora"
-date: "January 11, 2019"
-output: html_document
----
+
 Source of this R material: https://www.analyticsvidhya.com/blog/2016/02/complete-tutorial-learn-data-science-scratch/
 
 ```{r setup, include=FALSE}

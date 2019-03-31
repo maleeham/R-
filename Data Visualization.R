@@ -1,5 +1,5 @@
 ## Data Visualization examples
-## Last Updated: August 27, 2018
+
 ## List the libraries
 library(forecast)
 library(tidyverse)

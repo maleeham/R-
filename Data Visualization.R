@@ -186,4 +186,4 @@ mWorldMap(gdp.df, key = "Country.Name", fill = "GDP2015") +
 
     ### well-being map
 mWorldMap(happiness.df, key = "Nation", fill = "Score") + coord_map() + 
-  scale_fill_continuous(name = "happiness")
+  scale_fill_continuous(name = "Happiness")

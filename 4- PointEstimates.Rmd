@@ -1,7 +1,7 @@
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-All functions are explained at the bottom. You can also run ?functionX to learn about the function.
+All functions are explained at the bottom.
 
 #Sampling, Estimators and Bias 
 
